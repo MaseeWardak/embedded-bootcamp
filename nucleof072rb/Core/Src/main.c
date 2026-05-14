@@ -104,7 +104,10 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 	  // Sends 3 bytes to ADC asking for channel 0 reading, receive 3 bytes back into result
-	  uint8_t data[3] = {0x06, 0x00, 0x00};
+	  //mb, I totally got the hex wrong (first time using it), might be wrong here as well, but from the doc
+	  // The first byte sends 00000001 which should be 0x01 in hex, the second represents single ended measurement of the voltage
+	  // for the ADC, a 10000000 represents that. The third byte is as is.
+	  uint8_t data[3] = {0x01, 0x80, 0x00};
 	  uint8_t result[3] = {0x00, 0x00, 0x00};
 
 	  // Pulls the CS pin LOW to tell ADC we are about to talk to it
@@ -119,8 +122,9 @@ int main(void)
 	  // Extracts the 10 bit ADC value from the result array (bitwise operators used here)
 	  uint16_t adcValue = ((result[1] & 0x03) << 8) | result[2];
 
-	  // Converts ADC value (0-1023) to timer counts for PWM (100-200 counts = 1ms-2ms)
-	  uint16_t pwmValue = 100 + (adcValue * 100 / 1023);
+	  // Converts ADC value (0-1023) to timer counts for PWM (3200-6400 counts = 1ms-2ms)
+	  // New config = 64,000 period and 14 prescaler (significantly better resolution)
+	  uint16_t pwmValue = 3200 + (adcValue * 3200 / 1023);
 
 	  // Sets the PWM output to the calculated value
 	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, pwmValue);
